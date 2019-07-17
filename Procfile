@@ -1,0 +1,1 @@
+web: gunicorn controle_financeiro.wsgi --log-file -
