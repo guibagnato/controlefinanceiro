@@ -9,7 +9,9 @@ from controle_financeiro.produtos.models import Acao
 class CarteiraNewGet(TestCase):
     def setUp(self):
         user = User.objects.create_user(username='johndoe', password='teste@123', email='john@doe.com')
+
         definicao = Definicao.objects.create(user=user, name='Carteira Teste')
+
         itub3 = Acao.objects.create(code='ITUB3', name='Itaú Unibanco')
         egie = Acao.objects.create(code='EGIE', name='ENGIE Brasil Energia S.A.')
         lren3 = Acao.objects.create(code='LREN3', name='LOJAS RENNER SA')
@@ -34,6 +36,24 @@ class CarteiraNewGet(TestCase):
     def test_template(self):
         """Must use carteira/allocation.html"""
         self.assertTemplateUsed(self.resp, 'carteira/allocation.html')
+
+    def _get_context(self):
+        composition = self.resp.context.get('context').get('composition')
+        weights = [stock.weight for stock in composition]
+        return composition, weights
+
+
+class CarteiraNewGetEmpty(TestCase):
+    def setUp(self):
+        user = User.objects.create_user(username='guibagnato', password='teste@123', email='gui@bagnato.com')
+        self.client.force_login(user=user)
+        self.resp = self.client.get(r('carteira:allocation'))
+
+    def test_context_empty(self):
+        """Get /carteira/ must return empty list if composition is empty"""
+        composition, weights = self._get_context()
+        self.assertEqual(0, len(composition))
+        self.assertEqual(0, sum(weights))
 
     def _get_context(self):
         composition = self.resp.context.get('context').get('composition')
